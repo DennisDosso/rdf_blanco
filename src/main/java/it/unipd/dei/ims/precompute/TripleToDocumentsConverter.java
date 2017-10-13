@@ -95,7 +95,6 @@ public class TripleToDocumentsConverter {
 	private static void doTextConversion(Pair<String, String> pair) {
 
 		Path inputPath = Paths.get(pair.getLeft());
-		Path outputPath = Paths.get(pair.getRight());
 
 		//open and read the file with a BufferedReader
 		try (BufferedReader reader = Files.newBufferedReader(inputPath, Utilities.ENCODING)){
@@ -110,6 +109,8 @@ public class TripleToDocumentsConverter {
 				Pair<String, String> pairIdWords = createBagOfWords(line);
 				//dato l'id, identifichiamo il nome e il path del nuovo documento txt che vogliamo creare
 				String currentPath = pair.getRight() + "/" + pairIdWords.getLeft() + ".txt";
+				Path outputFile = Paths.get(currentPath);
+				
 			}      
 
 //			writer.close();
