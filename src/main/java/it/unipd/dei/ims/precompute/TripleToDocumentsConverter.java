@@ -1,6 +1,7 @@
 package it.unipd.dei.ims.precompute;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +38,8 @@ public class TripleToDocumentsConverter {
 
 		//si esegue la conversione in semplici file di testo
 		doTextConversion(pathPair);
+		
+		System.out.println("done");
 
 
 	}
@@ -59,13 +62,12 @@ public class TripleToDocumentsConverter {
 			prop.load(input);
 
 			//path da cui prendere il file rdf enorme di 
-//			String originalFile = prop.getProperty("singlerdffilepath");
-			//TODO mentre sono in prova
-			String originalFile = prop.getProperty("inputfilepathtest");
+			String originalFile = prop.getProperty("singlerdffilepath");
 			
 			//dove salvare i file di testo
 			String targetDirectory = prop.getProperty("outputsimpletextcollectionpath");
 
+			
 			Pair<String, String> pair = Pair.of(originalFile, targetDirectory);
 
 			log.debug("found the following paths: " + pair.toString());
@@ -100,9 +102,8 @@ public class TripleToDocumentsConverter {
 		try (BufferedReader reader = Files.newBufferedReader(inputPath, Utilities.ENCODING)){
 
 			String line = null;
-//			BufferedWriter writer = Files.newBufferedWriter(outputPath, Utilities.ENCODING);
 
-			while ((line = reader.readLine()) != null) {
+			while ((line = reader.readLine()) != null) {//per ogni tripla RDF
 				//si scrivono nuovi file
 				
 				//dalla line si ricava l'id della tripla e il documento ad essa associato
@@ -111,9 +112,13 @@ public class TripleToDocumentsConverter {
 				String currentPath = pair.getRight() + "/" + pairIdWords.getLeft() + ".txt";
 				Path outputFile = Paths.get(currentPath);
 				
+				BufferedWriter writer = Files.newBufferedWriter(outputFile, Utilities.ENCODING);
+				
+				writer.write(pairIdWords.getRight());
+				writer.newLine();
+				
+				writer.close();
 			}      
-
-//			writer.close();
 
 		} catch (IOException e) {
 			e.printStackTrace();
