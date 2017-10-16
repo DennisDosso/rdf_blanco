@@ -16,11 +16,6 @@ public class FromTripleToDoc {
 
 	public static void main(String[] args) {
 		
-//		String text = "Index this, you smartass";
-//		
-//		Document doc;
-//		StringReader reader = new StringReader(text);
-//		doc = new FileDocument(reader, new HashMap(), Tokeniser.getTokeniser());
 		
 		String aDirectoryToIndex = "/Users/dennisdosso/Desktop/original-workspace/terrier-core/share/vaswani_npl/corpus";
 		String pathToMyIndex = "/Users/dennisdosso/Desktop/original-workspace/terrier-core/share/vaswani_npl/result";

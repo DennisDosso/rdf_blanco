@@ -1,4 +1,4 @@
-package it.unipd.dei.ims.precompute;
+package it.unipd.dei.msi.terrier;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -20,13 +20,16 @@ import org.apache.log4j.Logger;
 
 import it.unipd.dei.ims.main.Utilities;
 
-/**Legge in ingresso il file RDF e crea tanti file di testo bag of 
+/**VERSIONE DI TEST DELLA CLASSE TripleTODocumentsConverter. 
+ * Questa si limita a scrivere solo alcuni file in una cartella di prova.
+ * 
+ * Legge in ingresso il file RDF e crea tanti file di testo bag of 
  * word pronti per essere indicizati*/
-public class TripleToDocumentsConverter {
+public class FromRDFToDocTest {
 
 	private static Properties prop = new Properties();
 	private static InputStream input = null;
-	static Logger log = Logger.getLogger(TripleToDocumentsConverter.class);
+	static Logger log = Logger.getLogger(FromRDFToDocTest.class);
 
 	public static void main(String[] args) throws IOException {
 
@@ -59,11 +62,12 @@ public class TripleToDocumentsConverter {
 			// load the properties file
 			prop.load(input);
 
-			//path da cui prendere il file rdf enorme di 
+			//path da cui prendere il file rdf enorme 
 			String originalFile = prop.getProperty("singlerdffilepath");
 			
 			//dove salvare i file di testo
-			String targetDirectory = prop.getProperty("outputsimpletextcollectionpath");
+			//XXX cartella di prova
+			String targetDirectory = prop.getProperty("outputtestdirectory");
 
 			
 			Pair<String, String> pair = Pair.of(originalFile, targetDirectory);
@@ -97,30 +101,28 @@ public class TripleToDocumentsConverter {
 
 		Path inputPath = Paths.get(pair.getLeft());
 		
+		/**tiene conto di quante triple ho già scritto*/
 		int counter = 0;
+		//tiene conto di quante cartelle ho già creato
+		int powCounter = 0;
+		//parte finale del path della directory in cui sto salvando attualmente file
+		String currentDirectory = "";
+		String line = null;
 
 		//open and read the file with a BufferedReader
 		try (BufferedReader reader = Files.newBufferedReader(inputPath, Utilities.ENCODING)){
 
-			String line = null;
-			
-			//tiene conto di quante cartelle ho già creato
-			int powCounter = 0;
-			//parte finale del path della directory in cui sto salvando attualmente file
-			String currentDirectory = "";
-
 			while ((line = reader.readLine()) != null) {//per ogni tripla RDF
 				//si scrivono nuovi file
-				
+
 				if(counter%1024 == 0) {
-					//nuova directory (se serve)
+					//nuova directory
 					currentDirectory = powCounter + "";
 					powCounter++;
 					//creiamo la nuova cartella
 					Path newDir = Paths.get(pair.getRight() + "/" + currentDirectory);
 					Files.createDirectories(newDir);
 				}
-				
 				//dalla line si ricava l'id della tripla e il documento ad essa associato
 				Pair<String, String> pairIdWords = createBagOfWords(line);
 				
@@ -136,9 +138,8 @@ public class TripleToDocumentsConverter {
 				writer.close();
 				
 				counter++;
-				if(counter%1024 == 0) {
-//					log.debug("Written " + counter + " files");
-					System.out.println("written " + counter + " files");
+				if(counter == 3000) {
+					break;
 				}
 			}      
 

@@ -392,4 +392,12 @@
  16:36:33 DEBUG UriDatabasePurifier  :: input file: /Users/dennisdosso/workspace-rdf/mvn_prova/datasets/rdf_datasets/IMdb-dump.nt ; output file path: /Users/dennisdosso/workspace-rdf/mvn_prova/datasets/rdf_datasets/IMdb-dump-purified.nt
  16:36:33 DEBUG UriDatabasePurifier  :: Start...
  16:37:34 DEBUG UriDatabasePurifier  ::  ----------- process has been completed successfuly ------------ 
+ 11:01:31 DEBUG FromRDFToDocTest     :: 
+ ------ Starting conversion from rdf to simple text ----- 
+
+ 11:01:31 DEBUG FromRDFToDocTest     :: found the following paths: (/Users/dennisdosso/workspace-rdf/mvn_prova/datasets/rdf_datasets/IMdb-dump-purified.nt,/Users/dennisdosso/workspace-rdf/mvn_prova/datasets/test)
+ 11:20:01 DEBUG FromRDFToDocTest     :: 
+ ------ Starting conversion from rdf to simple text ----- 
+
+ 11:20:01 DEBUG FromRDFToDocTest     :: found the following paths: (/Users/dennisdosso/workspace-rdf/mvn_prova/datasets/rdf_datasets/IMdb-dump-purified.nt,/Users/dennisdosso/workspace-rdf/mvn_prova/datasets/test)
  
