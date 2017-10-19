@@ -10,6 +10,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,17 +23,17 @@ import org.apache.log4j.Logger;
 
 import it.unipd.dei.ims.main.Utilities;
 
-/**Legge in ingresso il file RDF e crea tanti file di testo bag of 
- * word pronti per essere indicizati*/
-public class TripleToDocumentsConverter {
+/**Legge in ingresso un file RDF con varie triple
+ * e ne crea un file XML con i tag necessari*/
+public class FromRDFtoXMLFileConverter {
 
 	private static Properties prop = new Properties();
 	private static InputStream input = null;
-	static Logger log = Logger.getLogger(TripleToDocumentsConverter.class);
+	static Logger log = Logger.getLogger(FromRDFtoXMLFileConverter.class);
 
 	public static void main(String[] args) throws IOException {
 
-		log.debug("------ Starting conversion from rdf to simple text ----- \n");
+		log.debug("------ Starting conversion from rdf to xml ----- \n");
 		Stopwatch timer = Stopwatch.createStarted();
 		
 		//si leggono path dalle properties
@@ -43,9 +45,9 @@ public class TripleToDocumentsConverter {
 		
 		System.out.println("done");
 		System.out.println(" ----- convertion terminated  in " + timer.stop() 
-				+ " nanoseconds ------- \n");
-		log.debug(" ----- convertion terminated  in " + timer.stop() 
-				+ " nanoseconds ------- \n");
+				+ " ------- \n");
+//		log.debug(" ----- convertion terminated  in " + timer.stop() 
+//				+ " nanoseconds ------- \n");
 
 
 	}
@@ -67,11 +69,12 @@ public class TripleToDocumentsConverter {
 			// load the properties file
 			prop.load(input);
 
-			//path da cui prendere il file rdf enorme di 
+			//path da cui prendere il file rdf enorme di RDF
+			//singlerdffilepath
 			String originalFile = prop.getProperty("singlerdffilepath");
 			
-			//dove salvare i file di testo
-			String targetDirectory = prop.getProperty("outputsimpletextcollectionpath");
+			//dove salvare il file xml
+			String targetDirectory = prop.getProperty("outputXmlCollectionPath");
 
 			
 			Pair<String, String> pair = Pair.of(originalFile, targetDirectory);
@@ -105,6 +108,7 @@ public class TripleToDocumentsConverter {
 
 		Path inputPath = Paths.get(pair.getLeft());
 		
+		//tiene conto di quanti documenti ho già scritto
 		int counter = 0;
 
 		//open and read the file with a BufferedReader
@@ -112,41 +116,54 @@ public class TripleToDocumentsConverter {
 
 			String line = null;
 			
-			//tiene conto di quante cartelle ho già creato
+			//tiene conto di quanti file xml ho già scritto
 			int powCounter = 0;
-			//parte finale del path della directory in cui sto salvando attualmente file
-			String currentDirectory = "";
+			
+			//path del file xml 
+			String filePath = pair.getRight() + "/" + "xml_dataset" + powCounter + ".xml";
+			Path outputFile = Paths.get(filePath);
+			
+			//writer in uscita
+			BufferedWriter writer = Files.newBufferedWriter(outputFile, Utilities.ENCODING);
 
-			while ((line = reader.readLine()) != null) {//per ogni tripla RDF
+			while ((line = reader.readLine()) != null) {//per ogni tripla RDF/documento
 				//si scrivono nuovi file
 				
-				if(counter%1024 == 0) {
-					//nuova directory (se serve, per aiutare il file system)
-					currentDirectory = powCounter + "";
+				if(counter%32768 == 0) {
+
+					//ho appena finito un file e ne devo creare un apro
+					//scrivo l'ultima riga alla fine del file che sto chiudendo
+					writer.write("</collection>");
+					//nuovo file ( per aiutare il file system)
+					//finisco di scrivere quello che sto scrivendo altrimenti il file rischia di diventare incompleto
+					writer.flush();
+					writer.close();
+					
+					//aggiorniamo il path
+					filePath = pair.getRight() + "/" + "xml_dataset" + powCounter + ".xml";
+					outputFile = Paths.get(filePath);
+
+					//creo un nuovo file
+					writer = Files.newBufferedWriter(outputFile, Utilities.ENCODING);
+					writer.write("<collection>");
+					writer.newLine();
+					
+					System.out.println("written " + (powCounter+1) + " xml files with 32768 documents each");
 					powCounter++;
-					//creiamo la nuova cartella
-					Path newDir = Paths.get(pair.getRight() + "/" + currentDirectory);
-					Files.createDirectories(newDir);
-					System.out.println("written " + powCounter + " directories with 1024 files each");
 				}
 				
-				//dalla line si ricava l'id della tripla e il documento ad essa associato
-				Pair<String, String> pairIdWords = createBagOfWords(line);
+				//dalla line si ricava l'id della tripla e le parole associate a subj, obj e predicato
+				Map<String, String> mapOfWords = createBagOfWords(line);
 				
-				//dato l'id, identifichiamo il nome e il path del nuovo documento txt che vogliamo creare
-				String currentPath = pair.getRight() + "/" + currentDirectory + "/" + pairIdWords.getLeft() + ".txt";
-				Path outputFile = Paths.get(currentPath);
-				
-				BufferedWriter writer = Files.newBufferedWriter(outputFile, Utilities.ENCODING);
-				
-				writer.write(pairIdWords.getRight());
-				writer.newLine();
-				
-				writer.close();
+				writeOneDocumentXML(mapOfWords, writer);
 				
 				counter++;
 				
-			}      
+			}   
+			
+			//srivo l'ultima riga sull'ultimo file
+			writer.write("</collection>");
+			writer.close();
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -155,12 +172,14 @@ public class TripleToDocumentsConverter {
 	}
 
 
-	/**prende la stringa a parametro, passata in formato RDF n-triple, 
+	/**Prende la stringa a parametro, passata in formato RDF n-triple, 
 	 * e la converte in una semplice stringa di testo separata da spazi.
 	 * 
 	 *  @param line la stringa da trasformare in documento*/
-	public static Pair<String, String> createBagOfWords(String line) {
+	public static Map<String, String> createBagOfWords(String line) {
 
+		Map<String, String> map = new HashMap<String, String>();
+		
 		//divido le stringhe. Due casi mi interessa: uri tra <...> o 
 		//literal tra "..."
 		//usiamo le fighissime espressioni regolari che spaccano
@@ -174,37 +193,72 @@ public class TripleToDocumentsConverter {
 		Pattern pattern = Pattern.compile(patternString);
 		Matcher matcher = pattern.matcher(line);
 		
+		int counter = 0;//contatore che tiene conto se siamo al soggetto, a predicato o all'oggetto
+		
 		
 		while(matcher.find()) {
 			String work = matcher.group();
+			
+			
 			if(work.equals(""))//tanto per sicurezza nel caso l'espressione porti a epsilon
 				continue;
-			else if(work.charAt(0) == '<') {
+			else if(work.charAt(0) == '<') {//è un url
 				//è un url
 				//lo prendo senza le parentesi
 				work = matcher.group(1);
 				//lavoro sull'URI
 				work = elaborateUri(work);
-				bagOfWord = bagOfWord + " " + work;
+				
+				//si rimpiazzano possibili caratteri non accettabili dentro un tag xml
+				work = work.replaceAll("\\&", "&amp;");
+				work = work.replaceAll("<", "&lt;");
+				work = work.replaceAll(">", "&gt;");
+				work = work.replaceAll("'", "&apos;");
+				work = work.replaceAll("\"", "&quot;");
+				
+				
+				if(counter==0) {
+					//è soggetto
+					map.put(Utilities.SUBJECT, work.trim());
+					counter++;
+				}
+				else if(counter==1) {
+					//è predicato
+					map.put(Utilities.PREDICATE, work.trim());
+					counter++;
+				}
+				else if(counter==2) {
+					//è oggetto
+					map.put(Utilities.OBJECT, work.trim());
+					counter++;
+				}
 			}
 			else if(work.charAt(0) == '"') {
-				//è un literal
+				//è un literal e dovrebbe essere solo oggetto
 				work = matcher.group(2);
+				work = work.replaceAll("\\&", "&amp;");
+				work = work.replaceAll("<", "&lt;");
+				work = work.replaceAll(">", "&gt;");
+				
 				//si può aggiungere subito quando trovato alla bag of words
 				bagOfWord = bagOfWord + " " + work;
+				
+				map.put(Utilities.OBJECT, work.trim());
 			}
 			else { 
 				//è un id
 				work = matcher.group();
 				//lo setto come nome del documento
 				pair.setLeft(work);
+				
+				map.put(Utilities.ID, work);
 			}
 		}
 		
 		//completata l'elaborazione della riga, possiamo settare il campo
 		pair.setRight(bagOfWord);
 		
-		return pair;
+		return map;
 	}
 	
 	/**Prende l'URI e, trattandolo come un url, ritorna la stringa che è l'ultimo
@@ -239,6 +293,43 @@ public class TripleToDocumentsConverter {
 			log.error("URL scritto male");
 			return "";
 		}
+	}
+	
+	/**Scrive nel file xml un documento
+	 * @param map Una mappa contenente come valori i campi da scrivere sull'xml e come chiavi id, subject, object e predicate
+	 * @param writer Un BufferedWriter già aperto sul file da scrivere
+	 * 
+	 * @throws IOException 
+	*/
+	private static void writeOneDocumentXML(Map<String,String> map, BufferedWriter writer) throws IOException {
+		
+		//si scrive il documento xml
+		writer.write("<document>");
+		writer.newLine();
+		
+		//id del documento
+		writer.write("\t<docno>");
+		writer.write(map.get(Utilities.ID));
+		writer.write("</docno>");
+		writer.newLine();
+		
+		//soggetto
+		writer.write("\t<subject>" + map.get(Utilities.SUBJECT) + "</subject>");
+		writer.newLine();
+		
+		//predicato
+		writer.write("\t<predicate>" + map.get(Utilities.PREDICATE) + "</predicate>");
+		writer.newLine();
+
+		//soggetto
+		writer.write("\t<object>" + map.get(Utilities.OBJECT) + "</object>");
+		writer.newLine();
+
+		
+		writer.write("</document>");
+		
+		writer.newLine();
+		
 	}
 }
 

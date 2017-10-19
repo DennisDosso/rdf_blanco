@@ -22,6 +22,17 @@ public class Utilities {
 	 * per leggere e scrivere i file in formato .nt (triple)*/
 	
 	public final static Charset ENCODING = StandardCharsets.UTF_8;
+	
+	public final static String SUBJECT = "subject";
+	
+	public final static String PREDICATE = "predicate";
+	
+	public final static String OBJECT = "object";
+	
+	public final static String ID = "docno";
+	
+	
+	
 	/** Legge dal file di properties character.properties 
 	 * e ritorna l'array con tutti i caratteri e loro sostituzione.
 	 * */
