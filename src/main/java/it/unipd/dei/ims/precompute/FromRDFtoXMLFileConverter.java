@@ -173,9 +173,13 @@ public class FromRDFtoXMLFileConverter {
 
 
 	/**Prende la stringa a parametro, passata in formato RDF n-triple, 
-	 * e la converte in una semplice stringa di testo separata da spazi.
+	 * e la converte in stringa. Il risultato è restituito in una mappa
 	 * 
-	 *  @param line la stringa da trasformare in documento*/
+	 *  @param line la stringa da trasformare in documento.
+	 *  
+	 *  @return una Mappa contenente coppie chiave-valore, entrambe stringhe. 
+	 *  Le chiavi possibili sono subject, object, predicate.
+	 *  */
 	public static Map<String, String> createBagOfWords(String line) {
 
 		Map<String, String> map = new HashMap<String, String>();

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.jena.test ;
+package it.unipd.dei.ims.jena ;
 
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.*;

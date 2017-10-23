@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.jena.test ;
+package it.unipd.dei.ims.jena ;
 
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.FileManager;
@@ -37,9 +37,10 @@ public class Tutorial05 extends Object {
         class, must be added to the class-path when running this and
         subsequent examples.
     */    
-    static final String inputFileName  = "vc-db-1.rdf";
+    static String inputFileName  = "vc-db-1.rdf";
+    //modelInputPath=/Users/dennisdosso/workspace-rdf/mvn_prova/datasets/rdf_datasets/E-model.nt
     
-    /* Ho avuto problemi con Eclipse nel riconoscimento di file. 
+    		/* Ho avuto problemi con Eclipse nel riconoscimento di file. 
      * Si utilizza qui il path assoluto.*/
     static final String absolutePathInputFileName = "/Users/dennisdosso/eclipse-workspace/mvn_prova/src/test/java/vc-db-1.rdf";
     
@@ -47,6 +48,7 @@ public class Tutorial05 extends Object {
         // create an empty model
         Model model = ModelFactory.createDefaultModel();
         
+        inputFileName = "/Users/dennisdosso/workspace-rdf/mvn_prova/datasets/rdf_datasets/E-model.nt";
         InputStream in = FileManager.get().open( inputFileName );
 //        InputStream in = FileManager.get().open( absolutePathInputFileName );
         
@@ -56,7 +58,8 @@ public class Tutorial05 extends Object {
         
         // read the RDF/XML file
         //e crea un Model su di esso
-        model.read(in, "");
+        //model.read(in, "");
+        model.read(in, "N_TRIPLE");
                     
         // write it to standard out (per cambiare si usa N-TRIPLE. 
         //se non indichi nulla riscrive come XML)

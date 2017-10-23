@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.jena.test ;
+package it.unipd.dei.ims.jena ;
 
 import java.io.InputStream;
 

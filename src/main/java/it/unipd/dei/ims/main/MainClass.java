@@ -13,7 +13,7 @@ import org.apache.jena.util.FileManager;
 public class MainClass {
 
 	//nome del file in cui è presente il grafo rdf da leggere
-	static final String inputFileName = "IMdb-dump-purified.nt";
+	static final String inputFileName = "datasets/rdf_datasets/IMdb-dump-purified.nt";
 //	static final String inputFileName = "dump-di-prova.nt";
 
 	public static void main(String[] args) {

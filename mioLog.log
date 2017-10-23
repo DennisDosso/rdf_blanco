@@ -412,4 +412,30 @@
  ------ Starting conversion from rdf to simple text ----- 
 
  15:34:42 DEBUG FromRDFToDocTest     :: found the following paths: (/Users/dennisdosso/workspace-rdf/mvn_prova/datasets/rdf_datasets/IMdb-dump-purified.nt,/Users/dennisdosso/workspace-rdf/mvn_prova/datasets/test)
+ 17:02:16 DEBUG Jena                 :: Jena initialization
+ 17:02:16 DEBUG FileManager          :: Add location: LocatorFile
+ 17:02:16 DEBUG FileManager          :: Add location: ClassLoaderLocator
+ 17:02:16 DEBUG LocationMapper       :: Failed to find configuration: file:location-mapping.rdf;file:location-mapping.n3;file:location-mapping.ttl;file:etc/location-mapping.rdf;file:etc/location-mapping.n3;file:etc/location-mapping.ttl
+ 17:02:16 DEBUG FileManager          :: Add location: LocatorFile
+ 17:02:16 DEBUG FileManager          :: Add location: LocatorURL
+ 17:02:16 DEBUG FileManager          :: Add location: ClassLoaderLocator
+ 17:02:16 DEBUG JenaIOEnvironment    :: Failed to find configuration: location-mapping.ttl;location-mapping.rdf;location-mapping.n3;etc/location-mapping.rdf;etc/location-mapping.n3;etc/location-mapping.ttl
+ 17:02:16 DEBUG info                 :: System architecture: 64 bit
+ 17:02:16 DEBUG StreamManager        :: open(/Users/dennisdosso/workspace-rdf/mvn_prova/datasets/rdf_datasets/E-model.nt)
+ 17:02:16 DEBUG StreamManager        :: Not mapped: /Users/dennisdosso/workspace-rdf/mvn_prova/datasets/rdf_datasets/E-model.nt
+ 17:02:16 DEBUG StreamManager        :: Found: /Users/dennisdosso/workspace-rdf/mvn_prova/datasets/rdf_datasets/E-model.nt (LocatorFile)
+ 17:02:17 ERROR riot                 :: [line: 1, col: 7 ] Element or attribute do not match QName production: QName::=(NCName':')?NCName. 
+ 17:04:09 DEBUG Jena                 :: Jena initialization
+ 17:04:09 DEBUG FileManager          :: Add location: LocatorFile
+ 17:04:09 DEBUG FileManager          :: Add location: ClassLoaderLocator
+ 17:04:09 DEBUG LocationMapper       :: Failed to find configuration: file:location-mapping.rdf;file:location-mapping.n3;file:location-mapping.ttl;file:etc/location-mapping.rdf;file:etc/location-mapping.n3;file:etc/location-mapping.ttl
+ 17:04:09 DEBUG FileManager          :: Add location: LocatorFile
+ 17:04:09 DEBUG FileManager          :: Add location: LocatorURL
+ 17:04:09 DEBUG FileManager          :: Add location: ClassLoaderLocator
+ 17:04:09 DEBUG JenaIOEnvironment    :: Failed to find configuration: location-mapping.ttl;location-mapping.rdf;location-mapping.n3;etc/location-mapping.rdf;etc/location-mapping.n3;etc/location-mapping.ttl
+ 17:04:10 DEBUG info                 :: System architecture: 64 bit
+ 17:04:10 DEBUG StreamManager        :: open(/Users/dennisdosso/workspace-rdf/mvn_prova/datasets/rdf_datasets/E-model.nt)
+ 17:04:10 DEBUG StreamManager        :: Not mapped: /Users/dennisdosso/workspace-rdf/mvn_prova/datasets/rdf_datasets/E-model.nt
+ 17:04:10 DEBUG StreamManager        :: Found: /Users/dennisdosso/workspace-rdf/mvn_prova/datasets/rdf_datasets/E-model.nt (LocatorFile)
+ 17:04:10 ERROR riot                 :: [line: 1, col: 7 ] Element or attribute do not match QName production: QName::=(NCName':')?NCName. 
  

@@ -48,7 +48,7 @@ public class QueryGraphGenerator {
 		//leggi in ingresso il file
 		List<Integer> list = getListOfId();
 
-		//si vanno a produrre le liste RDF
+		//si vanno a produrre le liste RDF come string
 		List<String[]> stringList = produceRdfStrings(list);
 		
 		//si vanno a creare gli statement RDF con JENA
@@ -68,6 +68,10 @@ public class QueryGraphGenerator {
 
 	}
 	
+	/** Data una lista di array di stringhe [soggetto, predicato, oggetto] va a generare
+	 * una lista di Statement Jena RDF.
+	 * 
+	 * */
 	private static List<Statement> createStatementList(List<String[]> stringList) {
 		
 		List<Statement> statementList = new ArrayList<Statement>();
@@ -85,12 +89,10 @@ public class QueryGraphGenerator {
 			String obj = stringArray[2];
 			RDFNode object;
 			
-			if(obj.contains("^^"))
-				System.out.println(obj);
+			//TODO da gestire i literal con i format ^^ alla fine
 			
 			if(obj.charAt(0) == '"') {
 				//è un literal
-				
 				obj = obj.replaceAll("\"", "");
 				object = ResourceFactory.createStringLiteral(obj);
 			}
