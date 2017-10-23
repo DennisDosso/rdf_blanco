@@ -8,13 +8,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -48,6 +52,7 @@ public class SubgraphRetriever {
 			outputDirectoryPath = stringMap.get(OUTPUT_DIRECTORY);
 
 			retrieveSubgraphs(inputPath, outputDirectoryPath);
+			System.out.println("done");
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -69,8 +74,11 @@ public class SubgraphRetriever {
 	 * */
 	private static void retrieveSubgraphs(String inputPath, String outputDirectoryPath) {
 
-		//si crea un modello vuoto
+		//si crea un modello vuoto di input
 		Model model = ModelFactory.createDefaultModel();
+
+		//devo tenere traccia in qualche modo dei model già creati in maniera da non avere duplicati
+		List<Model> modelList = new ArrayList<Model>();
 
 		InputStream in = FileManager.get().open( inputPath );
 
@@ -87,26 +95,55 @@ public class SubgraphRetriever {
 		StmtIterator iter = model.listStatements();
 		int graphCounter = 0;
 
-		while (iter.hasNext()) {
-			Statement t = iter.nextStatement(); // get next statement
+		while (iter.hasNext()) {//per ogni tripla rdf
+			Statement t = iter.nextStatement(); 
 			//creiamo il nuovo modello 
 			Model extendingModel = ModelFactory.createDefaultModel();
 
 			//creiamo un sottografo da questo statement
 			extendSubgraph(extendingModel, t);
-			
-			//TODO si scrive il model su di un file
-			File f = new File(outputDirectoryPath + "graph_" + graphCounter + ".nt");
-			OutputStream out;
-			try {
-				out = new FileOutputStream(f);
-				extendingModel.write(out, Utilities.NT);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
+
+			if( ! checkForDuplicates(extendingModel, modelList) ) {
+				// se non ci sono duplicati
+				// aggiungo il modello alla lista
+				modelList.add(extendingModel);
+
+				//lo stampo
+				File f = new File(outputDirectoryPath + "graph_" + graphCounter + ".nt");
+				OutputStream out;
+				try {
+					out = new FileOutputStream(f);
+					extendingModel.write(out, Utilities.NT);
+					graphCounter++;
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}
 			}
+
 
 		}
 	}
+
+	/**
+	 * Controlla se un Model/RDF graph è già contenuto nella lista di grafi passata a parametro
+	 * 
+	 * @param modelList lista di grafi su cui si controlla se il modello a parametro è già presente
+	 * @param extendingModel modello per cui si vuole controllare se esiste già nella lista
+	 * 
+	 * @return true se nella lista è presente un duplicato 
+	 * */
+	private static boolean checkForDuplicates( Model extendingModel, List<Model> modelList ) {
+
+		for(Model model : modelList) { //per ogni modello a disposizione
+			if( model.containsAll(extendingModel) ) {
+				//se troviamo un modello duplicato 
+				return true;
+			}
+		}
+		return false;
+	}
+
+
 
 	/**Crea un sottografo secondo l'algoritmo del paper Keyword Search over RDF Graphs
 	 * di Blanco partendo da un singolo lato/statement/tripla RDF. */
@@ -115,30 +152,46 @@ public class SubgraphRetriever {
 		extendingModel.add(t);
 
 		//struttura di supporto per sapere quante parole il documento corrispondente al grafo contiene
-		List<String> listOfWords = new ArrayList<String>();
-		addWordsFromGraphToList(extendingModel, listOfWords);
+		List<String> graphList = new ArrayList<String>();
+		addWordsFromGraphToList(extendingModel, graphList);
 
-		//–––––––––––– fase preliminare: si riempie la nuvola iniziale –––––––––––––––
+		//–––––––––––– fase preliminare: si riempie la nuvola iniziale con i vicini del primo statement –––––––––––––––
 
-		//si prendono le triple vicine a t
-
-		//e si prendono i loro vicini
 		Queue<Statement> neighboursQueue = new LinkedList<Statement>();
 		addNeighboursToQueue(neighboursQueue, t);
 
 		//–––––––––– fase greedy: si controllano i vicini ––––––––––––––– 
 		//per ognuno dei vicini, serve verificare se va bene aggiungerlo
-		while ( neighboursQueue.isEmpty() ) {//fino a che non abbiamo finito i vicini
+		while ( ! neighboursQueue.isEmpty() ) {//fino a che non abbiamo finito i vicini
 
 			//si prende la prossima tripla
 			Statement nextStatement = neighboursQueue.remove();
-			if( checkForInsertion(listOfWords, nextStatement) ) {
+
+			//si estrapolano le parole che formano il suo documento
+			//si estrapolano le stringe contenute nello statement e le si mette in una lista
+			List<String> statementList = new ArrayList<String>();
+			addWordsFromStatementToList(nextStatement, statementList);
+
+			if( checkForInsertion(graphList, statementList) ) {//controllo se si può inserire, ossia se nel grafo sono già presenti le mie parole
 				//aggiungo al grafo lo statement
 				extendingModel.add(nextStatement);
 				//aggiungo i vicini dello statement alla queue
 				addNeighboursToQueue(neighboursQueue, nextStatement);
+				//aggiungo le nuove parole alla lista di appoggio				
+				addNewWordsToList(graphList, statementList);
 			}
 
+		}
+	}
+
+	/**Aggiunge alla lista raffigurante il documento grafo le parole della lista dello statement 
+	 * e solo quelle non già contenute*/
+	private static void addNewWordsToList(List<String> graphList, List<String> statementList) {
+
+		for(String s : statementList) {
+			if(! graphList.contains(s)) {
+				graphList.add(s);
+			}
 		}
 	}
 
@@ -176,7 +229,7 @@ public class SubgraphRetriever {
 	}
 
 	/** Aggiunge parole da uno statement RDF, di qualunque natura esso sia,
-	 * ad una lista L di Strng
+	 * ad una lista L di String
 	 * */
 	private static void addWordsFromStatementToList(Statement stmt, List<String> L) {
 
@@ -185,25 +238,87 @@ public class SubgraphRetriever {
 		Property predicate = stmt.getPredicate(); 
 		RDFNode object = stmt.getObject();
 
-		addWordsFromResourceToList(subject, L);
-		addWordsFromResourceToList(predicate, L);
-		addWordsFromResourceToList(object, L);
+		addWordsFromResourceToList(subject, L, false);
+		boolean lookAhead = addWordsFromResourceToList(predicate, L, false);
+		addWordsFromResourceToList(object, L, lookAhead);
+
+	}
+
+
+	/**Legge da file di properties le stringhe RDF per cui serve
+	 * tenere una gestione particolare*/
+	private static List<String> getLookAheadList() {
+
+		Properties prop = new Properties();
+		InputStream input = null;
+		List<String> list = new ArrayList<String>();
+
+		try {
+			input = new FileInputStream("properties/rdf_tag.properties");
+			prop.load(input);
+			
+			//si leggono tutti gli elementi nel file di properties
+			Enumeration<?> enumeration = prop.propertyNames();
+			while(enumeration.hasMoreElements()) {
+				String key = (String) enumeration.nextElement();
+				String value = prop.getProperty(key);
+
+				list.add(value);
+			}
+			
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e ) {
+			e.printStackTrace();
+		}
+		
+		return list;
 
 	}
 
 	/**Aggiunge parole da una risorsa RDF r ad una list L di String
+	 * 
+	 * @param lookAhead flag booleano che indica al metodo se è necessario inserire tra le parole della lista anche
+	 * l'url al completo. Questo può rivelarsi necessario nel caso in cui vi siano url molto simili che cambiano solo all'interno del 
+	 * path e non nel valore finale.
 	 * */
-	private static void addWordsFromResourceToList(RDFNode r, List<String> L) {
+	private static boolean addWordsFromResourceToList(RDFNode r, List<String> L, boolean lookAhead) {
 
 		String insertingString = r.toString();
-		//si estrapola la stringa dall'uri o dal litera
+		//si estrapola la stringa dall'uri o dal literal
 		insertingString = elaborateRDFString(insertingString);
+		boolean lookahead = false;
+		
+		//si gestiscono i caratteri particolari
+		List<String> lookAheadList = Utilities.getPropertiesValues("properties/rdf_tag.properties");
+
+		//per ognuno dei caratteri particolari
+		for(String s : lookAheadList) {
+			if(insertingString.equals(s)) {
+				//se il nostro termine è uno di quelli da starci attenti, tipo sameAs
+				lookahead = true;
+				//con questo flag, avviso che è necessario tenere conto dell'url object che verrà dopo
+			}
+		}
+
+		
+		if(lookAhead) {
+			//se siamo stati avvisati, aggiungiamo l'intera stringa (un url) alle stringhe che stiamo gestendo
+			L.add(r.toString());
+		}
+
 		//la stringa potrebbe avere degli spazi
 		String[] parts = insertingString.split("\\s+");
-		for(String s : parts) {//er ogni stringa che vorrei inserire
+
+		for(String s : parts) {//per ogni stringa che vorrei inserire
+
 			if( ! L.contains(s))//sto facendo un insieme: non voglio duplicati
 				L.add(s);
 		}
+		
+		return lookahead;
 
 	}
 
@@ -215,18 +330,23 @@ public class SubgraphRetriever {
 	 * Se è già un literal ci basta averlo tutto*/
 	private static String elaborateRDFString(String line) {
 
-		if(line.charAt(0) == '"') {//è un literal
-			return line.replaceAll("\"", "");
-		}
-		else {
+		//controllo se la stringa è un url
+		final String URL_REGEX = "^((https?|ftp)://|(www|ftp)\\.)?[a-z0-9-]+(\\.[a-z0-9-]+)+([/?].*)?$";
+
+		Pattern p = Pattern.compile(URL_REGEX);
+		Matcher m = p.matcher(line);//replace with string to compare
+		if(m.find()) {
 			//è un uri
 			//si ritorna la parte finale del path
-			return Utilities.elaborateUri(line);
+			return Utilities.elaborateUri(line).trim();
 		}
-
+		else {
+			//è un literal
+			return line.replaceAll("\"", "").trim();
+		}
 	}
 
-	/** Controlla la condizione individuata da Blanco et. Al. riguardo l'inserimento di 
+	/** Controlla la condizione individuata da Blanco  riguardo l'inserimento di 
 	 * una nuova tripla rdf. Essa viene aggiunta se e solo se porta significato semantico, ossia
 	 * se la lista ad essa associata porta parole nuove al grafo G.
 	 * 
@@ -234,12 +354,23 @@ public class SubgraphRetriever {
 	 * @param t Statement che si vuol provare ad aggiungere*/
 	private static boolean checkForInsertion( List<String> listOfWords, Statement t) {
 
-		//estrapolo la stringa
-		String rdfStatement = t.toString();
-		rdfStatement = elaborateRDFString(rdfStatement);
+		//si estrapolano le stringe contenute nello statement e le si mette in una lista
+		List<String> statementList = new ArrayList<String>();
+		addWordsFromStatementToList(t, statementList);
 
-		//ritorno true se la parola non è contenuta
-		return ( ! listOfWords.contains(rdfStatement) );
+
+		//ritorno true se le parole non sono contenute
+		return ( ! listOfWords.containsAll(statementList) );
+	}
+
+	/** Controlla che una lista non sia contenuta in un'altra
+	 * 
+	 * @param graphList la lista contenente le parole del grafo
+	 * @param statement list la lista contenente le parole dello statement che si vorrebbe aggiungere*/
+	private static boolean checkForInsertion( List<String> graphList, List<String> statementList) {
+
+		//ritorno true se le parole non sono contenute
+		return ( ! graphList.containsAll(statementList) );
 	}
 
 	private static Map<String, String> getPaths() throws IOException {

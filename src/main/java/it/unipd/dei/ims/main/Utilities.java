@@ -1,6 +1,8 @@
 package it.unipd.dei.ims.main;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -39,6 +41,8 @@ public class Utilities {
 	
 	
 	
+	
+	
 	/** Legge dal file di properties character.properties 
 	 * e ritorna l'array con tutti i caratteri e loro sostituzione.
 	 * */
@@ -70,6 +74,43 @@ public class Utilities {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	/** Legge da fule di properties tutti i valori e ritorna una lista
+	 * di stringhe da essi formata
+	 * 
+	 * @param propertyName path all'interno del progetto Eclipse 
+	 * del file di property da leggere. 
+	 * */
+	public static List<String> getPropertiesValues(String propertyName) {
+
+		Properties prop = new Properties();
+		InputStream input = null;
+		List<String> list = new ArrayList<String>();
+
+		try {
+			input = new FileInputStream(propertyName);
+			prop.load(input);
+			
+			//si leggono tutti gli elementi nel file di properties
+			Enumeration<?> enumeration = prop.propertyNames();
+			while(enumeration.hasMoreElements()) {
+				String key = (String) enumeration.nextElement();
+				String value = prop.getProperty(key);
+
+				list.add(value);
+			}
+			
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e ) {
+			e.printStackTrace();
+		}
+		
+		return list;
+
 	}
 	
 	/**Prende la stringa a parametro, passata in formato RDF n-triple, 
