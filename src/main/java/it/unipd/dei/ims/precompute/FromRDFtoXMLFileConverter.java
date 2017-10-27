@@ -24,7 +24,11 @@ import org.apache.log4j.Logger;
 import it.unipd.dei.ims.main.Utilities;
 
 /**Legge in ingresso un file RDF con varie triple
- * e ne crea un file XML con i tag necessari*/
+ * e ne crea un file XML con i tag necessari
+
+@author Dennis Dosso, University of Padua
+
+*/
 public class FromRDFtoXMLFileConverter {
 
 	private static Properties prop = new Properties();
@@ -267,7 +271,7 @@ public class FromRDFtoXMLFileConverter {
 	
 	/**Prende l'URI e, trattandolo come un url, ritorna la stringa che è l'ultimo
 	 * elemento del path.*/
-	private static String elaborateUri(String elaborandum) {
+	public static String elaborateUri(String elaborandum) {
 		
 		try {
 			URL urlString = new URL(elaborandum);
