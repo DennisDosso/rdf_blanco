@@ -99,7 +99,16 @@ public class FromRetrievedRDFGraphsToXMLDocumentConverter {
 			int counter = 0;
 
 			for ( Path path : fileList ) {//for each file in the directory (= 1 document in the xml file)
-
+				String pathEnd = path.toString();
+				String[] parts = pathEnd.split("/");
+				String endingPart = parts[parts.length - 1];
+				String regex = "[0-9]+";
+				Pattern pattern = Pattern.compile(regex);
+				Matcher matcher = pattern.matcher(endingPart);
+				String cou = "xxx";
+				if(matcher.find())
+					 cou = matcher.group(0);
+				
 				//input reader
 				BufferedReader reader = Files.newBufferedReader(path, Utilities.ENCODING);
 
@@ -117,7 +126,7 @@ public class FromRetrievedRDFGraphsToXMLDocumentConverter {
 				}
 				
 				//now, write a document in the xml file
-				writeOneDocumentXML(wordMap, writer, counter);
+				writeOneDocumentXML(wordMap, writer, cou);
 				counter++;
 				
 				reader.close();
@@ -133,7 +142,7 @@ public class FromRetrievedRDFGraphsToXMLDocumentConverter {
 
 	}
 	
-private static void writeOneDocumentXML(Map<String,String> map, BufferedWriter writer, int id) throws IOException {
+private static void writeOneDocumentXML(Map<String,String> map, BufferedWriter writer, String id) throws IOException {
 		
 		//si scrive il documento xml
 		writer.write("<document>");
@@ -141,7 +150,7 @@ private static void writeOneDocumentXML(Map<String,String> map, BufferedWriter w
 		
 		//id del documento
 		writer.write("\t<docno>");
-		writer.write("" + id);
+		writer.write(id);
 		writer.write("</docno>");
 		writer.newLine();
 		

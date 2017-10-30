@@ -25,15 +25,16 @@ public class TaggedDocumentUse {
 			//this way I'm going to read the whole xml file as one docuent
 			Document document = new TaggedDocument(Files.openFileReader(PATH), new HashMap(), Tokeniser.getTokeniser());
 			
+			
 			//print the document terms one by one
-//			while(! document.endOfDocument()) {
-//				String term = document.getNextTerm();
-//				if(term != null)
-//					System.out.println(term);
-//			}
+			while(! document.endOfDocument()) {
+				String term = document.getNextTerm();
+				if(term != null)
+					System.out.println(term);
+			}
 			
-			
-//			TaggedDocument.check("9999");
+			//sembra che le parole con più di tot termini ripetuti o più di tot cifre siano scartati
+			TaggedDocument.check("9999");
 			TaggedDocument.dumpDocument(document);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
