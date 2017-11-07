@@ -109,7 +109,7 @@ public class SubgraphRetriever {
 				modelList.add(extendingModel);
 
 				//lo stampo
-				File f = new File(outputDirectoryPath + "graph_" + graphCounter + ".nt");
+				File f = new File(outputDirectoryPath + graphCounter + ".nt");
 				OutputStream out;
 				try {
 					out = new FileOutputStream(f);

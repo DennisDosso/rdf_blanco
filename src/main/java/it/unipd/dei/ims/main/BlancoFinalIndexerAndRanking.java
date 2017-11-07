@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.terrier.indexing.Collection;
+import org.terrier.indexing.Document;
 import org.terrier.indexing.SimpleXMLCollection;
 import org.terrier.matching.ResultSet;
 import org.terrier.querying.Manager;
@@ -19,6 +20,7 @@ import org.terrier.structures.Index;
 import org.terrier.structures.IndexOnDisk;
 import org.terrier.structures.indexing.Indexer;
 import org.terrier.structures.indexing.classical.BasicIndexer;
+import org.terrier.utility.ApplicationSetup;
 
 /**In this class we collect the xml document representing
  * the subgraphs of E retrieved by the Blanco retrieving algorithm
@@ -47,13 +49,16 @@ public class BlancoFinalIndexerAndRanking {
 		//setting system properties for terrier to find the terrier_home and the /etc directory
 		System.setProperty("terrier.home", dataMap.get(TERRIER_HOME));
 		System.setProperty("terrier.etc", dataMap.get(TERRIER_ETC));
+		
+		
 
-		//list of all the files what we want to be indexed (in this case only one)
+		//list of all the files what we want to be indexed (in this case only one xml file)
 		List<String> filesToProcess = new ArrayList<String>();
 		filesToProcess.add(dataMap.get(XML_FILE));
 		
 		//creating the collection
 		Collection coll = new SimpleXMLCollection(filesToProcess);
+		
 		
 		//indexing the collection
 		Indexer indexer = new BasicIndexer(dataMap.get(INDEX_DIRECTORY), dataMap.get(INDEX_NAME));
@@ -81,7 +86,7 @@ public class BlancoFinalIndexerAndRanking {
         for (int i =0; i< results.getResultSize(); i++) {
             int docid = results.getDocids()[i];
             double score = results.getScores()[i];
-            System.out.println("   Rank "+i+": "+docid+" "+results.getMetaItem("docno", docid)+" "+score);
+            System.out.println("   Rank "+i+" docid: "+docid+" "+" "+score);
         }
         
         System.out.println("done");

@@ -113,7 +113,7 @@ public class FromRetrievedRDFGraphsToXMLDocumentConverter {
 				BufferedReader reader = Files.newBufferedReader(path, Utilities.ENCODING);
 
 				String line = "";
-				//this map will contain 3 keys: subject, predicate, object. As values, a long string with the falues found in the triples of the graph
+				//this map will contain 3 keys: subject, predicate, object. As values, a long string with the values found in the triples of the graph
 				//initialize the map
 				wordMap.put(Utilities.SUBJECT, "");
 				wordMap.put(Utilities.PREDICATE, "");
